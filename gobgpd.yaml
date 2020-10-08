@@ -1,7 +1,7 @@
 global:
   config:
     as: 65506
-    router-id: "127.0.0.1"
+    router-id: "127.0.100.1"
     port: 17917
 
 neighbors:
