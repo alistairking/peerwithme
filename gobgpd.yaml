@@ -1,0 +1,20 @@
+global:
+  config:
+    as: 65506
+    router-id: "127.0.0.1"
+    port: 17917
+
+neighbors:
+   - config:
+       neighbor-address: "::1"
+     route-reflector:
+       config:
+         route-reflector-client: true
+         route-reflector-cluster-id: "127.0.0.1"
+
+   - config:
+       neighbor-address: "127.0.0.1"
+     route-reflector:
+       config:
+         route-reflector-client: true
+         route-reflector-cluster-id: "127.0.0.1"
