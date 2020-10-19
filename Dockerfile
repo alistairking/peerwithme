@@ -19,10 +19,10 @@ RUN cp /root/gobgpd /root/gobgp /usr/local/bin/
 COPY gobgpd.yaml /usr/local/etc/
 COPY proxy.py /usr/local/bin/
 
-ENTRYPOINT ["gobgpd",  "-f", "/usr/local/etc/gobgpd.yaml"]
+ENTRYPOINT ["gobgpd", "--api-hosts", ":50090",  "-f", "/usr/local/etc/gobgpd.yaml"]
 
 # proxy.py is not automatically executed. just
-# docker exec peerwithme proxy.py
+# docker exec -it peerwithme proxy.py
 # or, interactively
-# docker exec peerwithme bash
+# docker exec -it peerwithme bash
 # proxy.py

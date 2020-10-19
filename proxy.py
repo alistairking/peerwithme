@@ -11,7 +11,7 @@ def log(msg):
 
 
 def gobgp_do(args):
-    args = ["/root/gobgp"] + args
+    args = ["/root/gobgp", "--port", "50090"] + args
     # log(" ".join(args))
     subprocess.run(args)
 
