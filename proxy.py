@@ -57,11 +57,13 @@ stats = {
     "S": 0, # unused
 }
 elem_cnt = 0
+bgp_time = 0
 
 for elem in stream:
     # peer ip isn't a filter?? sigh
     if elem.peer_address != "27.111.228.155":
         continue
+    bgp_time = elem.time
     if elem.type in ["A", "R"]:
         gobgp_add(elem.fields['prefix'], elem.fields['as-path'],
                   elem.fields['next-hop'], ",".join(elem.fields['communities']))
@@ -73,4 +75,6 @@ for elem in stream:
     if elem_cnt % 1000 == 0:
         log("Proxy Stats: *: %d, R: %d, A: %d, W: %d" %
             (elem_cnt, stats["R"], stats["A"], stats["W"]))
+        now = time.time()
+        log("RT Delay: %ds, Now: %d, BGP: %d" % ((now-bgp_time), now, bgp_time))
 
