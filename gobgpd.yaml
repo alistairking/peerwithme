@@ -11,11 +11,31 @@ neighbors:
        config:
          route-reflector-client: true
          route-reflector-cluster-id: "127.0.0.1"
+     afi-safis:
+       - config:
+           afi-safi-name: "ipv6-unicast"
+       - config:
+           afi-safi-name: "l3vpn-ipv6-unicast"
+       - config:
+           afi-safi-name: "ipv6-labelled-unicast"
 
    - config:
        neighbor-address: "127.0.0.1"
+       auth-password: "peerwithme,please"
      route-reflector:
        config:
          route-reflector-client: true
          route-reflector-cluster-id: "127.0.0.1"
+     afi-safis:
+       - config:
+           afi-safi-name: "ipv4-unicast"
+       - config:
+           afi-safi-name: "l3vpn-ipv4-unicast"
+       - config:
+           afi-safi-name: "ipv4-labelled-unicast"
 
+vrfs:
+   - config:
+       name: "princess"
+       rd: "65700:100"
+       export-rt-list: ["65700:100"]
