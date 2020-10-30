@@ -49,6 +49,7 @@ stream = pybgpstream.BGPStream(
     collectors=["route-views.sg"],
     filter="peer 7713",
 )
+stream.add_rib_period_filter(-1)
 
 stats = {
     "A": 0,
