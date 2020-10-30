@@ -6,9 +6,10 @@ RUN \
   apt-get install -y \
     wget \
     python3-pip \
-    supervisor
+    supervisor \
+    git
 
-# RUN pip3 install
+RUN pip3 install git+https://github.com/alistairking/PyGoBGP.git@upgrade-gobgp-api
 
 WORKDIR /root
 RUN wget https://github.com/osrg/gobgp/releases/download/v2.20.0/gobgp_2.20.0_linux_amd64.tar.gz && \
