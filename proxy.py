@@ -7,6 +7,14 @@ from pygobgp import *
 import time
 from google.protobuf.any_pb2 import Any
 
+# TODO: make this easier to change (at run time)
+CONFIG = {
+    "project": "routeviews",
+    "collector": "route-views.sg",
+    "peer_asn": 7713,
+    "peer_addresses": {"27.111.228.155", "2001:de8:4::7713:1"},
+}
+
 def log(msg):
     sys.stderr.write(msg + "\n")
 
@@ -115,43 +123,58 @@ gobgp_do(["neighbor"])
 now = time.time()
 last_rib = int(now/28800)*28800
 
-# TODO: make these params customizable
-log("Starting PyBGPStream: from_time=%d, collectors=route-views.sg, " \
-    "peer: 7713/27.111.228.155" % last_rib)
+log("Starting PyBGPStream: from_time=%d, config: %s" % (last_rib, CONFIG))
 stream = pybgpstream.BGPStream(
     from_time=last_rib,
     until_time=0,
-    projects=["routeviews"],
-    collectors=["route-views.sg"],
-    filter="peer 7713",
+    project=CONFIG["project"],
+    collector=CONFIG["collector"],
+    filter="peer %d" % CONFIG["peer_asn"],
 )
 stream.add_rib_period_filter(-1)
 
-stats = {
-    "A": 0,
-    "R": 0,
-    "W": 0,
-    "S": 0, # unused
-}
+stats = [
+    {
+        "A": 0,
+        "R": 0,
+        "W": 0,
+        "S": 0, # unused
+    },
+    {
+        "A": 0,
+        "R": 0,
+        "W": 0,
+        "S": 0, # unused
+    },
+]
 elem_cnt = 0
 bgp_time = 0
 
 for elem in stream:
     # peer ip isn't a filter?? sigh
-    if elem.peer_address != "27.111.228.155":
+    if elem.peer_address not in CONFIG["peer_addresses"]:
         continue
     bgp_time = elem.time
-    if elem.type in ["A", "R"]:
+    if elem.type in {"A", "R"}:
         gobgp_add(elem.fields['prefix'], elem.fields['as-path'],
                   elem.fields['next-hop'], ",".join(elem.fields['communities']))
     elif elem.type == "W":
         gobgp_del(elem.fields['prefix'])
-    stats[elem.type] += 1
+    if ":" in elem.peer_address:
+        stats[1][elem.type] += 1
+    else:
+        stats[0][elem.type] += 1
 
     elem_cnt += 1
     if elem_cnt % 1000 == 0:
-        log("Proxy Stats: *: %d, R: %d, A: %d, W: %d" %
-            (elem_cnt, stats["R"], stats["A"], stats["W"]))
+        s = stats[0]
+        log("IPv4: *: %d, R: %d, A: %d, W: %d" % (elem_cnt, s["R"], s["A"], s["W"]))
+        s = stats[1]
+        log("IPv6: *: %d, R: %d, A: %d, W: %d" % (elem_cnt, s["R"], s["A"], s["W"]))
         now = time.time()
         log("RT Delay: %ds, Now: %d, BGP: %d" % ((now-bgp_time), now, bgp_time))
+        log("")
+    if elem_cnt % 100000 == 0:
+        gobgp_do(["neighbor"])
+        log("")
 
