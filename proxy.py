@@ -135,20 +135,22 @@ stream.add_rib_period_filter(-1)
 
 stats = [
     {
+        "*": 0,
         "A": 0,
         "R": 0,
         "W": 0,
         "S": 0, # unused
     },
     {
+        "*": 0,
         "A": 0,
         "R": 0,
         "W": 0,
         "S": 0, # unused
     },
 ]
-elem_cnt = 0
 bgp_time = 0
+elem_cnt = 0
 
 for elem in stream:
     # peer ip isn't a filter?? sigh
@@ -162,15 +164,17 @@ for elem in stream:
         gobgp_del(elem.fields['prefix'])
     if ":" in elem.peer_address:
         stats[1][elem.type] += 1
+        stats[1]["*"] += 1
     else:
         stats[0][elem.type] += 1
+        stats[0]["*"] += 1
 
     elem_cnt += 1
     if elem_cnt % 1000 == 0:
         s = stats[0]
-        log("IPv4: *: %d, R: %d, A: %d, W: %d" % (elem_cnt, s["R"], s["A"], s["W"]))
+        log("IPv4: *: %d, R: %d, A: %d, W: %d" % (s["*"], s["R"], s["A"], s["W"]))
         s = stats[1]
-        log("IPv6: *: %d, R: %d, A: %d, W: %d" % (elem_cnt, s["R"], s["A"], s["W"]))
+        log("IPv6: *: %d, R: %d, A: %d, W: %d" % (s["*"], s["R"], s["A"], s["W"]))
         now = time.time()
         log("RT Delay: %ds, Now: %d, BGP: %d" % ((now-bgp_time), now, bgp_time))
         log("")
