@@ -86,15 +86,17 @@ def gobgp_add(pfx, path, nexthop, community):
     next_hop.Pack(attribute_pb2.NextHopAttribute(
         next_hop=nexthop,
     ))
-    communities = Any()
-    comms = []
-    for c in community:
-        x = c.split(":")
-        comms.append(int(x[0])<<16|int(x[1]))
-    communities.Pack(attribute_pb2.CommunitiesAttribute(
-        communities=comms,
-    ))
-    attributes = [origin, as_path, next_hop, communities]
+    attributes = [origin, as_path, next_hop]
+    if len(community) > 0:
+        communities = Any()
+        comms = []
+        for c in community:
+            x = c.split(":")
+            comms.append(int(x[0])<<16|int(x[1]))
+        communities.Pack(attribute_pb2.CommunitiesAttribute(
+            communities=comms,
+        ))
+        attributes.append(communities)
 
     gobgp.stub.AddPath(
         gobgp_pb2.AddPathRequest(
@@ -159,7 +161,7 @@ for elem in stream:
     bgp_time = elem.time
     if elem.type in {"A", "R"}:
         gobgp_add(elem.fields['prefix'], elem.fields['as-path'],
-                  elem.fields['next-hop'], ",".join(elem.fields['communities']))
+                  elem.fields['next-hop'], elem.fields['communities'])
     elif elem.type == "W":
         gobgp_del(elem.fields['prefix'])
     if ":" in elem.peer_address:
