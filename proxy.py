@@ -11,8 +11,8 @@ from google.protobuf.any_pb2 import Any
 CONFIG = {
     "project": "routeviews",
     "collector": "route-views.sg",
-    "peer_asn": 7713,
-    "peer_addresses": {"27.111.228.155", "2001:de8:4::7713:1"},
+    "peer_asn": 24482,
+    "peer_addresses": {"27.111.228.159", "2001:de8:4::2:4482:1"},
 }
 
 def log(msg):
