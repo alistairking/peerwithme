@@ -11,9 +11,10 @@ RUN \
 
 RUN pip3 install git+https://github.com/alistairking/PyGoBGP.git@upgrade-gobgp-api
 
+ARG GOBGPV="2.23.0"
 WORKDIR /root
-RUN wget https://github.com/osrg/gobgp/releases/download/v2.20.0/gobgp_2.20.0_linux_amd64.tar.gz && \
-  tar zxf gobgp_2.20.0_linux_amd64.tar.gz
+RUN wget https://github.com/osrg/gobgp/releases/download/v${GOBGPV}/gobgp_${GOBGPV}_linux_amd64.tar.gz && \
+  tar zxf gobgp_${GOBGPV}_linux_amd64.tar.gz
 
 RUN cp /root/gobgpd /usr/local/bin/
 
