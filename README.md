@@ -5,10 +5,13 @@ least easier) to send some routes to a BGP peer.
 
 ## Get Started
 
-Just run `make restart`.
+```
+cp gobgpd.yaml.example gobgpd.yaml
+make restart
+```
 
 This will build the docker image and start gobgpd running using the
-config in [gobgpd.yaml](/gobgpd.yaml).
+config in [gobgpd.yaml.example](/gobgpd.yaml.example).
 
 In the current config, gobgpd listens on 17917 on the host's interface
 which allows it to be run on a machine with a "real" BGPd running on
