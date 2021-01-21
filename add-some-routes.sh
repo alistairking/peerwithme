@@ -6,7 +6,7 @@ GOBGP="docker exec -it peerwithme gobgp"
 
 # Normal IPv4 routes
 $GOBGP global rib add 192.172.226.0/24 origin egp aspath "3356 1909" nexthop 192.168.1.1 community "33:44,12:21"
-$GOBGP global rib add 130.270.0.0/16 origin igp aspath "6298 681 {6169,1234}" nexthop 192.168.20.30 community "101:805,15:163"
+$GOBGP global rib add 130.217.0.0/16 origin igp aspath "6298 681 {6169,1234}" nexthop 192.168.20.30 community "101:805,15:163"
 
 # Normal IPv6 routes
 $GOBGP global rib add -a ipv6 2002:c000:0204::/48 origin egp aspath "335 446" nexthop 2002::2
