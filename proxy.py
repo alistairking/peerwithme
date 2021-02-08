@@ -9,6 +9,7 @@ from google.protobuf.any_pb2 import Any
 
 # TODO: make this easier to change (at run time)
 CONFIG = {
+    "ribs": True,
     "project": "routeviews",
     "collector": "route-views.sg",
     "peer_asn": 24482,
@@ -123,17 +124,23 @@ def gobgp_del(pfx):
 gobgp_do(["neighbor"])
 
 now = time.time()
-last_rib = int(now/28800)*28800
+if CONFIG["ribs"]:
+    from_time = int(now/28800)*28800
+else:
+    # grab updates from 15 mins ago
+    from_time = int(now-900)
 
-log("Starting PyBGPStream: from_time=%d, config: %s" % (last_rib, CONFIG))
+log("Starting PyBGPStream: from_time=%d, config: %s" % (from_time, CONFIG))
 stream = pybgpstream.BGPStream(
-    from_time=last_rib,
+    record_type="updates",
+    from_time=from_time,
     until_time=0,
     project=CONFIG["project"],
     collector=CONFIG["collector"],
     filter="peer %d" % CONFIG["peer_asn"],
 )
-stream.add_rib_period_filter(-1)
+if CONFIG["ribs"]:
+    stream.add_rib_period_filter(-1)
 
 stats = [
     {
