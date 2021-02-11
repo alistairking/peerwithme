@@ -1,11 +1,20 @@
-build:
-	docker build -t peerwithme:latest ./
+build-deps:
+	docker build -t peerwithme-gobgp:latest ./gobgp/
 
-run:
-	docker run --init --net=host --name peerwithme -d peerwithme:latest
+build-%: build-deps
+	docker build -t peerwithme-$*:latest ./$*/
 
-clean:
-	docker stop peerwithme || echo "Not running?"
-	docker rm peerwithme || echo "No container?"
+run-%:
+	docker run --init --net=host --name peerwithme-$* -d peerwithme-$*:latest
 
-restart: build clean run
+clean-%:
+	@echo "Stopping peerwithme-$*"
+	@docker stop peerwithme-$* || echo "$* not running?"
+	@echo "Removing peerwithme-$*"
+	@docker rm peerwithme-$* || echo "No $* container?"
+
+.PHONY: restart-gobgpd
+restart-gobgpd: build-gobgpd clean-gobgpd run-gobgpd
+
+.PHONY: restart-proxy
+restart-proxy: build-proxy clean-proxy run-proxy

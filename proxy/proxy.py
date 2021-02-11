@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import subprocess
 import sys
 import pybgpstream
@@ -7,24 +8,34 @@ from pygobgp import *
 import time
 from google.protobuf.any_pb2 import Any
 
-# TODO: make this easier to change (at run time)
-CONFIG = {
-    "ribs": True,
-    "project": "routeviews",
-    "collector": "route-views.sg",
-    "peer_asn": 24482,
-    "peer_addresses": {"27.111.228.159", "2001:de8:4::2:4482:1"},
-}
+parser = argparse.ArgumentParser("""
+Proxy BGP data from a RV peer into a GoBGPd instance.
+""")
+# all args are optional
+parser.add_argument("--ribs", action="store_true", default=False,
+                    help="Start with a RIB dump to ensure a full table")
+
+parser.add_argument("--projects", default="routeviews",
+                    help="BGPStream collection projects")
+parser.add_argument("--collectors", default="route-views.sg",
+                    help="BGPStream collectors")
+parser.add_argument("--peer-asn", type=int, default="24482",
+                    help="BGPStream collector peer ASN")
+parser.add_argument("--peer-ips", default="27.111.228.159,2001:de8:4::2:4482:1",
+                    help="BGPStream collector peer IPs (comma-separated)")
+
+CONFIG = vars(parser.parse_args())
+CONFIG["projects"] = CONFIG["projects"].split(",")
+CONFIG["collectors"] = CONFIG["collectors"].split(",")
+CONFIG["peer_ips"] = CONFIG["peer_ips"].split(",")
 
 def log(msg):
-    sys.stderr.write(msg + "\n")
+    sys.stdout.write(msg + "\n")
 
 
 def gobgp_do(args):
-    args = ["/root/gobgp", "--port", "50090"] + args
-    # log(" ".join(args))
+    args = ["gobgp"] + args
     subprocess.run(args)
-
 
 gobgp = PyGoBGP(address="127.0.0.1", port=50090)
 
@@ -124,7 +135,9 @@ def gobgp_del(pfx):
 gobgp_do(["neighbor"])
 
 now = time.time()
+record_types=["updates"]
 if CONFIG["ribs"]:
+    record_types.append("ribs")
     from_time = int(now/28800)*28800
 else:
     # grab updates from 15 mins ago
@@ -132,11 +145,11 @@ else:
 
 log("Starting PyBGPStream: from_time=%d, config: %s" % (from_time, CONFIG))
 stream = pybgpstream.BGPStream(
-    record_type="updates",
+    record_types=record_types,
     from_time=from_time,
     until_time=0,
-    project=CONFIG["project"],
-    collector=CONFIG["collector"],
+    projects=CONFIG["projects"],
+    collectors=CONFIG["collectors"],
     filter="peer %d" % CONFIG["peer_asn"],
 )
 if CONFIG["ribs"]:
@@ -163,7 +176,7 @@ elem_cnt = 0
 
 for elem in stream:
     # peer ip isn't a filter?? sigh
-    if elem.peer_address not in CONFIG["peer_addresses"]:
+    if elem.peer_address not in CONFIG["peer_ips"]:
         continue
     bgp_time = elem.time
     if elem.type in {"A", "R"}:
